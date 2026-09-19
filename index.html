@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Victoria Sales Intelligence</title>
+
+    <style>
+        :root {
+            --red: #d71920;
+            --red-dark: #a90f15;
+            --red-soft: #fff0f1;
+            --red-border: #f3c7ca;
+            --white: #ffffff;
+            --background: #fff7f7;
+            --text: #241313;
+            --muted: #816c6d;
+            --shadow: 0 14px 40px rgba(141, 18, 23, 0.10);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Inter, Arial, Helvetica, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        /* MAIN LAYOUT */
+
+        .app {
+            display: grid;
+            grid-template-columns: 270px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .main {
+            min-width: 0;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+            background: linear-gradient(
+                180deg,
+                var(--red),
+                var(--red-dark)
+            );
+            color: var(--white);
+            padding: 24px 18px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 4px 8px 22px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .brand-logo {
+            width: 58px;
+            height: 58px;
+            object-fit: cover;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.15);
+        }
+
+        .brand-title {
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+        }
+
+        .brand-subtitle {
+            margin-top: 4px;
+            font-size: 12px;
+            opacity: 0.80;
+        }
+
+        .sidebar-label {
+            margin: 28px 10px 10px;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.14em;
+            opacity: 0.65;
+        }
+
+        .nav {
+            display: grid;
+            gap: 7px;
+        }
+
+        .nav-item {
+            width: 100%;
+            text-align: left;
+            text-decoration: none;
+            background: transparent;
+            color: var(--white);
+            border-radius: 12px;
+            padding: 13px 14px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            font-weight: 650;
+            transition: background 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.20);
+        }
+
+        .nav-item:focus-visible,
+        .suggestion:focus-visible,
+        .send-btn:focus-visible {
+            outline: 3px solid currentColor;
+            outline-offset: 3px;
+        }
+
+        .sidebar-user {
+            margin-top: auto;
+            padding: 16px 8px 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.18);
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: var(--white);
+            color: var(--red);
+            font-weight: 900;
+            font-size: 13px;
+        }
+
+        .sidebar-user strong {
+            display: block;
+            font-size: 13px;
+        }
+
+        .sidebar-user span {
+            display: block;
+            font-size: 11px;
+            opacity: 0.72;
+            margin-top: 3px;
+        }
+
+        /* TOP BAR */
+
+        .topbar {
+            min-height: 74px;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 34px;
+            border-bottom: 1px solid var(--red-border);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .workspace-chip {
+            color: var(--red);
+            background: var(--red-soft);
+            border: 1px solid var(--red-border);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .content {
+            padding: 32px;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        /* OVERVIEW HERO */
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            background: linear-gradient(
+                135deg,
+                var(--red),
+                #ef3440
+            );
+            color: var(--white);
+            padding: 36px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            right: -120px;
+            top: -140px;
+            border: 45px solid rgba(255, 255, 255, 0.08);
+            pointer-events: none;
+        }
+
+        .eyebrow {
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.16em;
+            margin-bottom: 10px;
+            opacity: 0.85;
+        }
+
+        .hero h1 {
+            font-size: clamp(30px, 4vw, 52px);
+            line-height: 1.04;
+            max-width: 760px;
+            letter-spacing: -0.035em;
+        }
+
+        .hero p {
+            margin-top: 14px;
+            max-width: 680px;
+            opacity: 0.88;
+            font-size: 15px;
+            line-height: 1.65;
+        }
+
+        .hero-controls {
+            margin-top: 26px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-select {
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            background: rgba(255, 255, 255, 0.13);
+            color: var(--white);
+            border-radius: 11px;
+            padding: 11px 14px;
+        }
+
+        .hero-select option {
+            color: var(--text);
+        }
+
+        .sample-note {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            opacity: 0.85;
+            padding-left: 4px;
+        }
+
+        /* SECTION HEADINGS */
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            margin-bottom: 16px;
+        }
+
+        .section-heading h2 {
+            font-size: 22px;
+        }
+
+        .section-heading p {
+            color: var(--muted);
+            margin-top: 5px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* KPI CARDS */
+
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 15px;
+            margin-bottom: 28px;
+        }
+
+        .card {
+            background: var(--white);
+            border: 1px solid var(--red-border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .kpi {
+            padding: 20px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .kpi:hover {
+            transform: translateY(-4px);
+            border-color: var(--red);
+        }
+
+        .kpi-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .kpi-label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .kpi-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--red-soft);
+            color: var(--red);
+            border-radius: 11px;
+            display: grid;
+            place-items: center;
+            font-weight: 900;
+        }
+
+        .kpi-value {
+            font-size: 29px;
+            font-weight: 900;
+            margin-top: 18px;
+            letter-spacing: -0.035em;
+        }
+
+        .kpi-change {
+            margin-top: 8px;
+            color: var(--red);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        /* CHARTS */
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns:
+                minmax(0, 1.55fr)
+                minmax(320px, 0.75fr);
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .panel {
+            padding: 22px;
+        }
+
+        .panel-title {
+            font-weight: 900;
+            font-size: 16px;
+        }
+
+        .panel-subtitle {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .chart {
+            height: 270px;
+            margin-top: 26px;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 13px;
+            padding: 20px 6px 0;
+            border-bottom: 1px solid var(--red-border);
+            background: repeating-linear-gradient(
+                to top,
+                transparent,
+                transparent 53px,
+                #f8d9dc 54px
+            );
+        }
+
+        .bar-wrap {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            height: 100%;
+            gap: 9px;
+        }
+
+        .bar {
+            width: 70%;
+            max-width: 58px;
+            min-width: 16px;
+            background: linear-gradient(
+                180deg,
+                #f24a55,
+                var(--red)
+            );
+            border-radius: 10px 10px 3px 3px;
+            position: relative;
+            transition: 0.2s ease;
+            box-shadow: 0 6px 12px rgba(215, 25, 32, 0.17);
+        }
+
+        .bar:hover {
+            filter: brightness(0.92);
+            transform: translateY(-3px);
+        }
+
+        .bar::before {
+            content: attr(data-value);
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: -24px;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--red);
+            white-space: nowrap;
+        }
+
+        .bar-label {
+            font-size: 11px;
+            color: var(--muted);
+            padding-bottom: 8px;
+        }
+
+        /* MARKETS */
+
+        .market-list {
+            display: grid;
+            gap: 18px;
+            margin-top: 22px;
+        }
+
+        .market-row {
+            display: grid;
+            gap: 7px;
+        }
+
+        .market-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .market-bar {
+            height: 9px;
+            background: var(--red-soft);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .market-fill {
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                var(--red),
+                #f24a55
+            );
+            border-radius: inherit;
+        }
+
+        /* PRODUCT TABLE */
+
+        .table-card {
+            overflow: hidden;
+            margin-bottom: 22px;
+        }
+
+        .table-head {
+            padding: 22px 22px 16px;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 760px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 15px 22px;
+            border-top: 1px solid var(--red-border);
+            font-size: 13px;
+        }
+
+        th {
+            background: var(--red-soft);
+            color: var(--red);
+            font-size: 10px;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+        }
+
+        td strong {
+            font-weight: 850;
+        }
+
+        .rank {
+            color: var(--red);
+            font-weight: 900;
+        }
+
+        /* SEPARATE CHAT PAGE */
+
+        #chatPage {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .ask-card {
+            background: linear-gradient(
+                135deg,
+                var(--red),
+                var(--red-dark)
+            );
+            color: var(--white);
+            border: none;
+            padding: 32px;
+            min-height: 430px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 18px;
+        }
+
+        .ask-card::after {
+            content: "V";
+            position: absolute;
+            right: -10px;
+            bottom: -75px;
+            font-size: 230px;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.06);
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        .ask-card h2,
+        .ask-card p {
+            position: relative;
+            z-index: 2;
+        }
+
+        .ask-card p {
+            margin-top: 8px;
+            color: rgba(255, 255, 255, 0.80);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 18px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .suggestion {
+            border: 1px solid rgba(255, 255, 255, 0.30);
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--white);
+            border-radius: 999px;
+            padding: 9px 13px;
+            font-size: 14px;
+            transition: 0.2s ease;
+        }
+
+        .suggestion:hover {
+            background: var(--white);
+            color: var(--red);
+        }
+
+        .chat-box {
+            margin-top: 32px;
+            background: var(--white);
+            border-radius: 14px;
+            padding: 7px;
+            display: flex;
+            gap: 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .chat-box:focus-within {
+            outline: 3px solid var(--red-border);
+        }
+
+        .chat-box input {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            outline: none;
+            padding: 10px 12px;
+            color: var(--text);
+        }
+
+        .send-btn {
+            border: none;
+            color: var(--white);
+            background: var(--red);
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-weight: 850;
+            transition: 0.2s ease;
+        }
+
+        .send-btn:hover {
+            background: var(--red-dark);
+        }
+
+        .response-box {
+            display: none;
+            margin-top: 14px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.20);
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 16px;
+            line-height: 1.7;
+            position: relative;
+            z-index: 2;
+        }
+
+        .chat-demo-note {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* FOOTER */
+
+        .footer {
+            padding: 20px 0 8px;
+            color: var(--muted);
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .footer strong {
+            color: var(--red);
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 1100px) {
+            .kpis {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: relative;
+                height: auto;
+            }
+
+            .nav {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .nav-item {
+                padding: 13px 10px;
+            }
+
+            .sidebar-user {
+                margin-top: 22px;
+            }
+
+            .topbar {
+                padding: 14px 18px;
+            }
+
+            .content {
+                padding: 18px;
+            }
+
+            .hero {
+                padding: 26px 22px;
+            }
+
+            .kpis {
+                grid-template-columns: 1fr;
+            }
+
+            .brand-logo {
+                width: 50px;
+                height: 50px;
+            }
+
+            .ask-card {
+                padding: 24px 18px;
+                min-height: 380px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="app">
+
+    <!-- SHARED SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="brand">
+            <img
+                src="victoria-logo.png"
+                class="brand-logo"
+                alt="Victoria Logo"
+            >
+
+            <div>
+                <div class="brand-title">VICTORIA</div>
+                <div class="brand-subtitle">Sales Intelligence</div>
+            </div>
+        </div>
+
+        <div class="sidebar-label">WORKSPACE</div>
+
+        <nav class="nav" aria-label="Workspace">
+            <a
+                class="nav-item active"
+                href="#overview"
+                data-page-link="overview"
+                aria-current="page"
+            >
+                <span aria-hidden="true">▦</span>
+                Sales overview
+            </a>
+
+            <a
+                class="nav-item"
+                href="#ask-victoria"
+                data-page-link="ask-victoria"
+            >
+                <span aria-hidden="true">✦</span>
+                Ask Victoria
+            </a>
+        </nav>
+
+        <div class="sidebar-user">
+            <div class="avatar">JK</div>
+
+            <div>
+                <strong>Jai Krishna</strong>
+                <span>Victoria workspace</span>
+            </div>
+        </div>
+
+    </aside>
+
+    <main class="main">
+
+        <!-- SHARED TOP BAR -->
+        <header class="topbar">
+            <div class="breadcrumb" id="pageBreadcrumb">
+                Workspace / Sales overview
+            </div>
+
+            <div class="workspace-chip">
+                Demo workspace
+            </div>
+        </header>
+
+        <div class="content">
+
+            <!-- PAGE 1: SALES OVERVIEW -->
+            <div
+                id="overviewPage"
+                class="page-view"
+                data-page="overview"
+            >
+
+                <section class="hero">
+                    <div class="eyebrow">
+                        VICTORIA SALES INTELLIGENCE
+                    </div>
+
+                    <h1>
+                        Your data.<br>
+                        A conversation away.
+                    </h1>
+
+                    <p>
+                        Explore sales, compare markets, understand
+                        product performance and ask Victoria
+                        questions about your business.
+                    </p>
+
+                    <div class="hero-controls">
+                        <select
+                            class="hero-select"
+                            id="periodSelect"
+                            aria-label="Reporting period"
+                        >
+                            <option>September 2026</option>
+                            <option>August 2026</option>
+                        </select>
+
+                        <div class="sample-note">
+                            Sample data only · USD ·
+                            Illustrative monthly totals
+                        </div>
+                    </div>
+                </section>
+
+                <section id="overview">
+                    <div class="section-heading">
+                        <div>
+                            <div
+                                class="eyebrow"
+                                style="color: var(--red); margin-bottom: 7px;"
+                            >
+                                THE BIG PICTURE
+                            </div>
+
+                            <h2 id="overviewHeading" tabindex="-1">
+                                Sales overview
+                            </h2>
+
+                            <p>
+                                A clearer view of how your business is doing.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="kpis">
+
+                        <div class="card kpi">
+                            <div class="kpi-top">
+                                <div class="kpi-label">Total revenue</div>
+                                <div class="kpi-icon">$</div>
+                            </div>
+
+                            <div class="kpi-value">$1,248,000</div>
+                            <div class="kpi-change">
+                                ↑ 12.0% vs. last month
+                            </div>
+                        </div>
+
+                        <div class="card kpi">
+                            <div class="kpi-top">
+                                <div class="kpi-label">Units sold</div>
+                                <div class="kpi-icon">↗</div>
+                            </div>
+
+                            <div class="kpi-value">15,600</div>
+                            <div class="kpi-change">
+                                ↑ 8.3% vs. last month
+                            </div>
+                        </div>
+
+                        <div class="card kpi">
+                            <div class="kpi-top">
+                                <div class="kpi-label">Total orders</div>
+                                <div class="kpi-icon">#</div>
+                            </div>
+
+                            <div class="kpi-value">1,240</div>
+                            <div class="kpi-change">
+                                ↑ 6.0% vs. last month
+                            </div>
+                        </div>
+
+                        <div class="card kpi">
+                            <div class="kpi-top">
+                                <div class="kpi-label">Avg. order value</div>
+                                <div class="kpi-icon">◎</div>
+                            </div>
+
+                            <div class="kpi-value">$1,006</div>
+                            <div class="kpi-change">
+                                ↑ 5.7% vs. last month
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- REVENUE AND MARKETS -->
+                <section class="dashboard-grid">
+
+                    <div class="card panel">
+                        <div class="panel-title">
+                            Revenue performance
+                        </div>
+
+                        <div class="panel-subtitle">
+                            Monthly sales revenue · 6-month view
+                        </div>
+
+                        <div class="chart">
+                            <div class="bar-wrap">
+                                <div
+                                    class="bar"
+                                    data-value="$820k"
+                                    style="height: 48%;"
+                                ></div>
+                                <div class="bar-label">Apr</div>
+                            </div>
+
+                            <div class="bar-wrap">
+                                <div
+                                    class="bar"
+                                    data-value="$890k"
+                                    style="height: 54%;"
+                                ></div>
+                                <div class="bar-label">May</div>
+                            </div>
+
+                            <div class="bar-wrap">
+                                <div
+                                    class="bar"
+                                    data-value="$960k"
+                                    style="height: 60%;"
+                                ></div>
+                                <div class="bar-label">Jun</div>
+                            </div>
+
+                            <div class="bar-wrap">
+                                <div
+                                    class="bar"
+                                    data-value="$1.04M"
+                                    style="height: 68%;"
+                                ></div>
+                                <div class="bar-label">Jul</div>
+                            </div>
+
+                            <div class="bar-wrap">
+                                <div
+                                    class="bar"
+                                    data-value="$1.11M"
+                                    style="height: 76%;"
+                                ></div>
+                                <div class="bar-label">Aug</div>
+                            </div>
+
+                            <div class="bar-wrap">
+                                <div
+                                    class="bar"
+                                    data-value="$1.25M"
+                                    style="height: 88%;"
+                                ></div>
+                                <div class="bar-label">Sep</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card panel">
+                        <div class="panel-title">Sales by market</div>
+
+                        <div class="panel-subtitle">
+                            Revenue contribution this month
+                        </div>
+
+                        <div class="market-list">
+
+                            <div class="market-row">
+                                <div class="market-header">
+                                    <span>Kenya</span>
+                                    <span>$512,000</span>
+                                </div>
+
+                                <div class="market-bar">
+                                    <div
+                                        class="market-fill"
+                                        style="width: 100%;"
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <div class="market-row">
+                                <div class="market-header">
+                                    <span>Tanzania</span>
+                                    <span>$374,400</span>
+                                </div>
+
+                                <div class="market-bar">
+                                    <div
+                                        class="market-fill"
+                                        style="width: 73%;"
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <div class="market-row">
+                                <div class="market-header">
+                                    <span>Uganda</span>
+                                    <span>$224,600</span>
+                                </div>
+
+                                <div class="market-bar">
+                                    <div
+                                        class="market-fill"
+                                        style="width: 44%;"
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <div class="market-row">
+                                <div class="market-header">
+                                    <span>Rwanda</span>
+                                    <span>$137,000</span>
+                                </div>
+
+                                <div class="market-bar">
+                                    <div
+                                        class="market-fill"
+                                        style="width: 27%;"
+                                    ></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- PRODUCTS BELONG ONLY TO THE OVERVIEW PAGE -->
+                <section class="card table-card">
+                    <div class="table-head">
+                        <div class="panel-title">
+                            Top-selling products
+                        </div>
+
+                        <div class="panel-subtitle">
+                            What's moving across your markets ·
+                            Ranked by units sold
+                        </div>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Units sold</th>
+                                    <th>Revenue</th>
+                                    <th>Share of units</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr>
+                                    <td class="rank">01</td>
+                                    <td>
+                                        <strong>Samsung Galaxy A16</strong>
+                                    </td>
+                                    <td>Smartphones</td>
+                                    <td>5,400</td>
+                                    <td>$540,000</td>
+                                    <td>34.6%</td>
+                                </tr>
+
+                                <tr>
+                                    <td class="rank">02</td>
+                                    <td><strong>Tecno Spark 30</strong></td>
+                                    <td>Smartphones</td>
+                                    <td>4,200</td>
+                                    <td>$336,000</td>
+                                    <td>26.9%</td>
+                                </tr>
+
+                                <tr>
+                                    <td class="rank">03</td>
+                                    <td><strong>Infinix Hot 50</strong></td>
+                                    <td>Smartphones</td>
+                                    <td>3,600</td>
+                                    <td>$252,000</td>
+                                    <td>23.1%</td>
+                                </tr>
+
+                                <tr>
+                                    <td class="rank">04</td>
+                                    <td><strong>Nokia 105</strong></td>
+                                    <td>Feature phones</td>
+                                    <td>2,400</td>
+                                    <td>$120,000</td>
+                                    <td>15.4%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- PAGE 2: ASK VICTORIA -->
+            <div
+                id="chatPage"
+                class="page-view"
+                data-page="ask-victoria"
+                hidden
+            >
+                <div class="section-heading">
+                    <div>
+                        <h1 id="chatHeading" tabindex="-1">
+                            Ask Victoria
+                        </h1>
+
+                        <p>
+                            Your sales copilot · Sample data · September 2026
+                        </p>
+                    </div>
+                </div>
+
+                <section id="ask-victoria" class="card ask-card">
+                    <h2>✦ Ask Victoria</h2>
+
+                    <p>
+                        Your sales copilot. Ask questions about
+                        sales, revenue, products and markets.
+                    </p>
+
+                    <div class="suggestions">
+                        <button
+                            type="button"
+                            class="suggestion"
+                            onclick="useSuggestion('Give me a sales summary')"
+                        >
+                            Give me a sales summary
+                        </button>
+
+                        <button
+                            type="button"
+                            class="suggestion"
+                            onclick="useSuggestion('Which market is performing best?')"
+                        >
+                            Which market is performing best?
+                        </button>
+
+                        <button
+                            type="button"
+                            class="suggestion"
+                            onclick="useSuggestion('Show top-selling products')"
+                        >
+                            Show top-selling products
+                        </button>
+
+                        <button
+                            type="button"
+                            class="suggestion"
+                            onclick="useSuggestion('How is revenue trending?')"
+                        >
+                            How is revenue trending?
+                        </button>
+                    </div>
+
+                    <div class="chat-box">
+                        <input
+                            id="questionInput"
+                            type="text"
+                            aria-label="Ask a sales question"
+                            placeholder="Ask a sales question..."
+                            onkeydown="handleKey(event)"
+                        >
+
+                        <button
+                            type="button"
+                            class="send-btn"
+                            onclick="sendQuestion()"
+                        >
+                            Send ↑
+                        </button>
+                    </div>
+
+                    <div
+                        id="responseBox"
+                        class="response-box"
+                        role="status"
+                        aria-live="polite"
+                    ></div>
+                </section>
+
+                <p class="chat-demo-note">
+                    Demo responses only. The AI agent and sales
+                    database are not connected yet.
+                </p>
+
+            </div>
+
+            <!-- SHARED FOOTER -->
+            <footer class="footer">
+                <span>
+                    <strong>VICTORIA</strong>
+                    · Sales intelligence, made simple.
+                </span>
+
+                <span>Prototype · September 2026</span>
+            </footer>
+
+        </div>
+    </main>
+</div>
+
+<script>
+    /*
+     * Two separate page views inside one HTML file:
+     *
+     * #overview      → Dashboard
+     * #ask-victoria  → Chatbot
+     *
+     * Browser Back and Forward also work.
+     * Switching pages preserves the current chat response.
+     */
+
+    function showPage(moveFocus = false) {
+        const route = window.location.hash.slice(1);
+
+        const page = route === "ask-victoria"
+            ? "ask-victoria"
+            : "overview";
+
+        // Send unknown routes back to the overview.
+        if (route && route !== page) {
+            window.location.replace("#overview");
+            return;
+        }
+
+        // Display only the selected page.
+        document.querySelectorAll("[data-page]").forEach(view => {
+            view.hidden = view.dataset.page !== page;
+        });
+
+        // Update the active sidebar link.
+        document.querySelectorAll("[data-page-link]").forEach(link => {
+            const active = link.dataset.pageLink === page;
+
+            link.classList.toggle("active", active);
+
+            if (active) {
+                link.setAttribute("aria-current", "page");
+            } else {
+                link.removeAttribute("aria-current");
+            }
+        });
+
+        const title = page === "overview"
+            ? "Sales overview"
+            : "Ask Victoria";
+
+        document.getElementById("pageBreadcrumb").textContent =
+            "Workspace / " + title;
+
+        document.title = title + " — Victoria Sales Intelligence";
+
+        if (moveFocus) {
+            const headingId = page === "overview"
+                ? "overviewHeading"
+                : "chatHeading";
+
+            document.getElementById(headingId).focus({
+                preventScroll: true
+            });
+
+            window.scrollTo({
+                top: 0,
+                behavior: "instant"
+            });
+        }
+    }
+
+    window.addEventListener("hashchange", () => {
+        showPage(true);
+    });
+
+    // Open the correct page on initial load.
+    showPage();
+
+    function useSuggestion(question) {
+        const input = document.getElementById("questionInput");
+
+        input.value = question;
+        input.focus();
+    }
+
+    function handleKey(event) {
+        if (event.key === "Enter" && !event.isComposing) {
+            event.preventDefault();
+            sendQuestion();
+        }
+    }
+
+    function sendQuestion() {
+        const input = document.getElementById("questionInput");
+        const responseBox = document.getElementById("responseBox");
+
+        const question = input.value.trim();
+
+        if (!question) {
+            return;
+        }
+
+        responseBox.style.display = "block";
+
+        // Only fixed demo-answer HTML is inserted here.
+        // User-entered text is never inserted as HTML.
+        responseBox.innerHTML =
+            "<strong>Victoria:</strong> " + getDemoAnswer(question);
+
+        input.value = "";
+        input.focus();
+    }
+
+    function getDemoAnswer(question) {
+        const lowerQuestion = question.toLowerCase();
+
+        if (lowerQuestion.includes("summary")) {
+            return `
+                September revenue is <strong>$1.248M</strong>,
+                with <strong>15,600 units sold</strong>.
+                Revenue increased <strong>12%</strong>
+                compared with last month.
+                Kenya is currently the largest revenue market.
+            `;
+        }
+
+        if (
+            lowerQuestion.includes("market") ||
+            lowerQuestion.includes("best")
+        ) {
+            return `
+                Based on the sample data,
+                <strong>Kenya</strong> has the highest revenue
+                at <strong>$512,000</strong>.
+            `;
+        }
+
+        if (lowerQuestion.includes("product")) {
+            return `
+                The current top-selling product is the
+                <strong>Samsung Galaxy A16</strong>
+                with <strong>5,400 units sold</strong>.
+            `;
+        }
+
+        if (
+            lowerQuestion.includes("trend") ||
+            lowerQuestion.includes("revenue")
+        ) {
+            return `
+                Revenue has increased from
+                <strong>$820K in April</strong>
+                to <strong>$1.248M in September</strong>.
+                The sample data shows a consistent upward trend.
+            `;
+        }
+
+        return `
+            This prototype is currently using sample responses.
+            The next step is to connect this chat box to your
+            <strong>FastAPI backend</strong>, AI agent
+            and Victoria sales database.
+        `;
+    }
+</script>
+</body>
+</html>
