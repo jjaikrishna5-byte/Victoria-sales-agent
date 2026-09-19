@@ -1356,26 +1356,72 @@
         }
     }
 
-    function sendQuestion() {
-        const input = document.getElementById("questionInput");
-        const responseBox = document.getElementById("responseBox");
+    async function sendQuestion() {
+    const input = document.getElementById("questionInput");
+    const responseBox = document.getElementById("responseBox");
+    const sendButton = document.querySelector(".send-btn");
 
-        const question = input.value.trim();
+    const question = input.value.trim();
 
-        if (!question) {
-            return;
+    // Prevent empty questions and duplicate submissions.
+    if (!question || sendButton.disabled) {
+        return;
+    }
+
+    sendButton.disabled = true;
+    sendButton.textContent = "Sending…";
+    input.disabled = true;
+
+    responseBox.style.display = "block";
+    responseBox.textContent = "Victoria is responding…";
+    responseBox.setAttribute("aria-busy", "true");
+
+    try {
+        const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ question }),
+            signal: AbortSignal.timeout(30000)
+        });
+
+        if (!response.ok) {
+            throw new Error(
+                response.status === 422
+                    ? "Enter a question between 1 and 2,000 characters."
+                    : `The backend returned an error (${response.status}).`
+            );
         }
 
-        responseBox.style.display = "block";
+        const data = await response.json();
 
-        // Only fixed demo-answer HTML is inserted here.
-        // User-entered text is never inserted as HTML.
-        responseBox.innerHTML =
-            "<strong>Victoria:</strong> " + getDemoAnswer(question);
+        if (typeof data.answer !== "string") {
+            throw new Error("The backend returned an invalid response.");
+        }
 
+        const label = data.mode === "demo"
+            ? "Victoria (demo): "
+            : "Victoria: ";
+
+        // Display backend responses safely as text.
+        responseBox.textContent = label + data.answer;
         input.value = "";
+
+    } catch (error) {
+        responseBox.textContent =
+            error.name === "TimeoutError"
+                ? "The request timed out. Please try again."
+                : "Could not get a response. " + error.message;
+
+    } finally {
+        sendButton.disabled = false;
+        sendButton.textContent = "Send ↑";
+        input.disabled = false;
+        responseBox.removeAttribute("aria-busy");
         input.focus();
     }
+}
 
     function getDemoAnswer(question) {
         const lowerQuestion = question.toLowerCase();
