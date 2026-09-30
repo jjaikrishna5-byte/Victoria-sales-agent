@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from sales_service import get_sales_overview
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -82,3 +83,16 @@ def get_demo_answer(question: str) -> str:
 @app.post("/api/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
     return ChatResponse(answer=get_demo_answer(request.question))
+
+@app.get("/api/sales/overview")
+def sales_overview(month: str = "2026-09"):
+    try:
+        return get_sales_overview(month)
+    except ValueError as error:
+
+
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(error),
+        ) from error
