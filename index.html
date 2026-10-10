@@ -1,1479 +1,786 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Victoria Sales Intelligence</title>
-
-    <style>
-        :root {
-            --red: #d71920;
-            --red-dark: #a90f15;
-            --red-soft: #fff0f1;
-            --red-border: #f3c7ca;
-            --white: #ffffff;
-            --background: #fff7f7;
-            --text: #241313;
-            --muted: #816c6d;
-            --shadow: 0 14px 40px rgba(141, 18, 23, 0.10);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: Inter, Arial, Helvetica, sans-serif;
-            background: var(--background);
-            color: var(--text);
-            min-height: 100vh;
-        }
-
-        button,
-        input,
-        select {
-            font: inherit;
-        }
-
-        button {
-            cursor: pointer;
-        }
-
-        [hidden] {
-            display: none !important;
-        }
-
-        /* MAIN LAYOUT */
-
-        .app {
-            display: grid;
-            grid-template-columns: 270px minmax(0, 1fr);
-            min-height: 100vh;
-        }
-
-        .main {
-            min-width: 0;
-        }
-
-        /* SIDEBAR */
-
-        .sidebar {
-            background: linear-gradient(
-                180deg,
-                var(--red),
-                var(--red-dark)
-            );
-            color: var(--white);
-            padding: 24px 18px;
-            display: flex;
-            flex-direction: column;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            padding: 4px 8px 22px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-        }
-
-        .brand-logo {
-            width: 58px;
-            height: 58px;
-            object-fit: cover;
-            border-radius: 15px;
-            background: white;
-            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.15);
-        }
-
-        .brand-title {
-            font-size: 16px;
-            font-weight: 900;
-            letter-spacing: 0.08em;
-        }
-
-        .brand-subtitle {
-            margin-top: 4px;
-            font-size: 12px;
-            opacity: 0.80;
-        }
-
-        .sidebar-label {
-            margin: 28px 10px 10px;
-            font-size: 11px;
-            font-weight: 900;
-            letter-spacing: 0.14em;
-            opacity: 0.65;
-        }
-
-        .nav {
-            display: grid;
-            gap: 7px;
-        }
-
-        .nav-item {
-            width: 100%;
-            text-align: left;
-            text-decoration: none;
-            background: transparent;
-            color: var(--white);
-            border-radius: 12px;
-            padding: 13px 14px;
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            font-weight: 650;
-            transition: background 0.2s ease;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.12);
-        }
-
-        .nav-item.active {
-            background: rgba(255, 255, 255, 0.20);
-        }
-
-        .nav-item:focus-visible,
-        .suggestion:focus-visible,
-        .send-btn:focus-visible {
-            outline: 3px solid currentColor;
-            outline-offset: 3px;
-        }
-
-        .sidebar-user {
-            margin-top: auto;
-            padding: 16px 8px 6px;
-            border-top: 1px solid rgba(255, 255, 255, 0.18);
-            display: flex;
-            align-items: center;
-            gap: 11px;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            background: var(--white);
-            color: var(--red);
-            font-weight: 900;
-            font-size: 13px;
-        }
-
-        .sidebar-user strong {
-            display: block;
-            font-size: 13px;
-        }
-
-        .sidebar-user span {
-            display: block;
-            font-size: 11px;
-            opacity: 0.72;
-            margin-top: 3px;
-        }
-
-        /* TOP BAR */
-
-        .topbar {
-            min-height: 74px;
-            background: rgba(255, 255, 255, 0.96);
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 14px 34px;
-            border-bottom: 1px solid var(--red-border);
-            position: sticky;
-            top: 0;
-            z-index: 20;
-        }
-
-        .breadcrumb {
-            font-size: 13px;
-            color: var(--muted);
-        }
-
-        .workspace-chip {
-            color: var(--red);
-            background: var(--red-soft);
-            border: 1px solid var(--red-border);
-            border-radius: 999px;
-            padding: 8px 12px;
-            font-size: 12px;
-            font-weight: 800;
-            white-space: nowrap;
-        }
-
-        .content {
-            padding: 32px;
-            max-width: 1500px;
-            margin: 0 auto;
-        }
-
-        /* OVERVIEW HERO */
-
-        .hero {
-            position: relative;
-            overflow: hidden;
-            border-radius: 24px;
-            background: linear-gradient(
-                135deg,
-                var(--red),
-                #ef3440
-            );
-            color: var(--white);
-            padding: 36px;
-            margin-bottom: 28px;
-            box-shadow: var(--shadow);
-        }
-
-        .hero::after {
-            content: "";
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            right: -120px;
-            top: -140px;
-            border: 45px solid rgba(255, 255, 255, 0.08);
-            pointer-events: none;
-        }
-
-        .eyebrow {
-            font-size: 11px;
-            font-weight: 900;
-            letter-spacing: 0.16em;
-            margin-bottom: 10px;
-            opacity: 0.85;
-        }
-
-        .hero h1 {
-            font-size: clamp(30px, 4vw, 52px);
-            line-height: 1.04;
-            max-width: 760px;
-            letter-spacing: -0.035em;
-        }
-
-        .hero p {
-            margin-top: 14px;
-            max-width: 680px;
-            opacity: 0.88;
-            font-size: 15px;
-            line-height: 1.65;
-        }
-
-        .hero-controls {
-            margin-top: 26px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .hero-select {
-            border: 1px solid rgba(255, 255, 255, 0.32);
-            background: rgba(255, 255, 255, 0.13);
-            color: var(--white);
-            border-radius: 11px;
-            padding: 11px 14px;
-        }
-
-        .hero-select option {
-            color: var(--text);
-        }
-
-        .sample-note {
-            display: flex;
-            align-items: center;
-            font-size: 12px;
-            opacity: 0.85;
-            padding-left: 4px;
-        }
-
-        /* SECTION HEADINGS */
-
-        .section-heading {
-            display: flex;
-            justify-content: space-between;
-            align-items: end;
-            margin-bottom: 16px;
-        }
-
-        .section-heading h2 {
-            font-size: 22px;
-        }
-
-        .section-heading p {
-            color: var(--muted);
-            margin-top: 5px;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        /* KPI CARDS */
-
-        .kpis {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 15px;
-            margin-bottom: 28px;
-        }
-
-        .card {
-            background: var(--white);
-            border: 1px solid var(--red-border);
-            border-radius: 18px;
-            box-shadow: var(--shadow);
-        }
-
-        .kpi {
-            padding: 20px;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-
-        .kpi:hover {
-            transform: translateY(-4px);
-            border-color: var(--red);
-        }
-
-        .kpi-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .kpi-label {
-            color: var(--muted);
-            font-size: 12px;
-            font-weight: 750;
-        }
-
-        .kpi-icon {
-            width: 38px;
-            height: 38px;
-            background: var(--red-soft);
-            color: var(--red);
-            border-radius: 11px;
-            display: grid;
-            place-items: center;
-            font-weight: 900;
-        }
-
-        .kpi-value {
-            font-size: 29px;
-            font-weight: 900;
-            margin-top: 18px;
-            letter-spacing: -0.035em;
-        }
-
-        .kpi-change {
-            margin-top: 8px;
-            color: var(--red);
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        /* CHARTS */
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns:
-                minmax(0, 1.55fr)
-                minmax(320px, 0.75fr);
-            gap: 18px;
-            margin-bottom: 18px;
-        }
-
-        .panel {
-            padding: 22px;
-        }
-
-        .panel-title {
-            font-weight: 900;
-            font-size: 16px;
-        }
-
-        .panel-subtitle {
-            font-size: 12px;
-            color: var(--muted);
-            margin-top: 4px;
-        }
-
-        .chart {
-            height: 270px;
-            margin-top: 26px;
-            display: flex;
-            align-items: end;
-            justify-content: space-between;
-            gap: 13px;
-            padding: 20px 6px 0;
-            border-bottom: 1px solid var(--red-border);
-            background: repeating-linear-gradient(
-                to top,
-                transparent,
-                transparent 53px,
-                #f8d9dc 54px
-            );
-        }
-
-        .bar-wrap {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            height: 100%;
-            gap: 9px;
-        }
-
-        .bar {
-            width: 70%;
-            max-width: 58px;
-            min-width: 16px;
-            background: linear-gradient(
-                180deg,
-                #f24a55,
-                var(--red)
-            );
-            border-radius: 10px 10px 3px 3px;
-            position: relative;
-            transition: 0.2s ease;
-            box-shadow: 0 6px 12px rgba(215, 25, 32, 0.17);
-        }
-
-        .bar:hover {
-            filter: brightness(0.92);
-            transform: translateY(-3px);
-        }
-
-        .bar::before {
-            content: attr(data-value);
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            top: -24px;
-            font-size: 10px;
-            font-weight: 800;
-            color: var(--red);
-            white-space: nowrap;
-        }
-
-        .bar-label {
-            font-size: 11px;
-            color: var(--muted);
-            padding-bottom: 8px;
-        }
-
-        /* MARKETS */
-
-        .market-list {
-            display: grid;
-            gap: 18px;
-            margin-top: 22px;
-        }
-
-        .market-row {
-            display: grid;
-            gap: 7px;
-        }
-
-        .market-header {
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        .market-bar {
-            height: 9px;
-            background: var(--red-soft);
-            border-radius: 999px;
-            overflow: hidden;
-        }
-
-        .market-fill {
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                var(--red),
-                #f24a55
-            );
-            border-radius: inherit;
-        }
-
-        /* PRODUCT TABLE */
-
-        .table-card {
-            overflow: hidden;
-            margin-bottom: 22px;
-        }
-
-        .table-head {
-            padding: 22px 22px 16px;
-        }
-
-        .table-wrap {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 760px;
-        }
-
-        th,
-        td {
-            text-align: left;
-            padding: 15px 22px;
-            border-top: 1px solid var(--red-border);
-            font-size: 13px;
-        }
-
-        th {
-            background: var(--red-soft);
-            color: var(--red);
-            font-size: 10px;
-            letter-spacing: 0.10em;
-            text-transform: uppercase;
-        }
-
-        td strong {
-            font-weight: 850;
-        }
-
-        .rank {
-            color: var(--red);
-            font-weight: 900;
-        }
-
-        /* SEPARATE CHAT PAGE */
-
-        #chatPage {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .ask-card {
-            background: linear-gradient(
-                135deg,
-                var(--red),
-                var(--red-dark)
-            );
-            color: var(--white);
-            border: none;
-            padding: 32px;
-            min-height: 430px;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 18px;
-        }
-
-        .ask-card::after {
-            content: "V";
-            position: absolute;
-            right: -10px;
-            bottom: -75px;
-            font-size: 230px;
-            font-weight: 900;
-            color: rgba(255, 255, 255, 0.06);
-            line-height: 1;
-            pointer-events: none;
-        }
-
-        .ask-card h2,
-        .ask-card p {
-            position: relative;
-            z-index: 2;
-        }
-
-        .ask-card p {
-            margin-top: 8px;
-            color: rgba(255, 255, 255, 0.80);
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .suggestions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 18px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .suggestion {
-            border: 1px solid rgba(255, 255, 255, 0.30);
-            background: rgba(255, 255, 255, 0.12);
-            color: var(--white);
-            border-radius: 999px;
-            padding: 9px 13px;
-            font-size: 14px;
-            transition: 0.2s ease;
-        }
-
-        .suggestion:hover {
-            background: var(--white);
-            color: var(--red);
-        }
-
-        .chat-box {
-            margin-top: 32px;
-            background: var(--white);
-            border-radius: 14px;
-            padding: 7px;
-            display: flex;
-            gap: 8px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .chat-box:focus-within {
-            outline: 3px solid var(--red-border);
-        }
-
-        .chat-box input {
-            flex: 1;
-            min-width: 0;
-            border: none;
-            outline: none;
-            padding: 10px 12px;
-            color: var(--text);
-        }
-
-        .send-btn {
-            border: none;
-            color: var(--white);
-            background: var(--red);
-            border-radius: 10px;
-            padding: 10px 16px;
-            font-weight: 850;
-            transition: 0.2s ease;
-        }
-
-        .send-btn:hover {
-            background: var(--red-dark);
-        }
-
-        .response-box {
-            display: none;
-            margin-top: 14px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.20);
-            padding: 18px;
-            border-radius: 12px;
-            font-size: 16px;
-            line-height: 1.7;
-            position: relative;
-            z-index: 2;
-        }
-
-        .chat-demo-note {
-            color: var(--muted);
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        /* FOOTER */
-
-        .footer {
-            padding: 20px 0 8px;
-            color: var(--muted);
-            font-size: 12px;
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .footer strong {
-            color: var(--red);
-        }
-
-        /* RESPONSIVE */
-
-        @media (max-width: 1100px) {
-            .kpis {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 760px) {
-            .app {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                position: relative;
-                height: auto;
-            }
-
-            .nav {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .nav-item {
-                padding: 13px 10px;
-            }
-
-            .sidebar-user {
-                margin-top: 22px;
-            }
-
-            .topbar {
-                padding: 14px 18px;
-            }
-
-            .content {
-                padding: 18px;
-            }
-
-            .hero {
-                padding: 26px 22px;
-            }
-
-            .kpis {
-                grid-template-columns: 1fr;
-            }
-
-            .brand-logo {
-                width: 50px;
-                height: 50px;
-            }
-
-            .ask-card {
-                padding: 24px 18px;
-                min-height: 380px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Victoria | Sales Intelligence</title>
+
+<style>
+:root {
+  --red: #d71920;
+  --dark: #a80d15;
+  --ink: #291719;
+  --muted: #856f72;
+  --bg: #fff8f8;
+  --line: #f0cdd0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: .55; cursor: wait; }
+
+.app {
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: linear-gradient(155deg, var(--red), var(--dark));
+  color: white;
+  padding: 25px 18px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  padding: 5px 5px 28px;
+  border-bottom: 1px solid #ffffff30;
+}
+
+.brand-logo {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  object-fit: contain;
+}
+
+.brand strong {
+  display: block;
+  font-size: 19px;
+  letter-spacing: .075em;
+}
+
+.brand small {
+  display: block;
+  font-size: 13px;
+  margin-top: 6px;
+  opacity: .85;
+}
+
+.nav-label {
+  margin: 33px 8px 15px;
+  font-size: 12px;
+  letter-spacing: .12em;
+  color: #ffced2;
+  font-weight: 800;
+}
+
+.nav { display: grid; gap: 10px; }
+
+.nav button {
+  color: white;
+  background: none;
+  border: 0;
+  text-align: left;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.nav button.active,
+.nav button:hover { background: #ffffff30; }
+
+.user {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid #ffffff33;
+  padding: 22px 4px 4px;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  background: white;
+  color: var(--red);
+  border-radius: 50%;
+  width: 43px;
+  height: 43px;
+  font-weight: 900;
+}
+
+.main { min-width: 0; }
+
+.topbar {
+  height: 80px;
+  background: #fffcfc;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 38px;
+  color: var(--muted);
+}
+
+.chip {
+  border: 1px solid var(--line);
+  background: #fff0f1;
+  color: var(--red);
+  border-radius: 25px;
+  padding: 10px 15px;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.content {
+  padding: 32px 38px;
+  max-width: 1500px;
+  margin: auto;
+}
+
+.hero {
+  background: linear-gradient(120deg, #d71920, #aa0710);
+  color: white;
+  border-radius: 23px;
+  padding: 37px 40px;
+  margin-bottom: 27px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero h1 {
+  font-size: clamp(30px, 3.6vw, 43px);
+  margin: 8px 0 14px;
+}
+
+.hero p {
+  color: #ffe4e5;
+  margin: 0 0 25px;
+  line-height: 1.6;
+}
+
+.eyebrow {
+  letter-spacing: .16em;
+  font-size: 11px;
+  font-weight: 850;
+  color: #ffd8db;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 25px;
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 10px 32px #9a273008;
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.kpi-value {
+  font-size: 29px;
+  font-weight: 900;
+  margin-top: 18px;
+}
+
+.kpi-sub {
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 18px;
+}
+
+.panel-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.panel-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.barrow {
+  display: grid;
+  grid-template-columns: 110px 1fr 90px;
+  gap: 12px;
+  align-items: center;
+  margin-top: 19px;
+  font-size: 13px;
+}
+
+.track {
+  background: #ffebed;
+  border-radius: 100px;
+  height: 13px;
+  overflow: hidden;
+}
+
+.fill {
+  background: linear-gradient(90deg, #fa5d65, var(--red));
+  height: 100%;
+  border-radius: 100px;
+}
+
+.listrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 15px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f6e6e7;
+  font-size: 13px;
+}
+
+.listrow strong { color: var(--red); }
+
+.month-control {
+  border: 1px solid #ffffff70;
+  border-radius: 9px;
+  background: #ffffff20;
+  color: white;
+  padding: 10px;
+}
+
+.month-control option { color: var(--ink); }
+
+.suggestions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+.suggestion {
+  background: #ffffff18;
+  border: 1px solid #ffffff6b;
+  color: white;
+  border-radius: 30px;
+  padding: 12px 17px;
+  font-weight: 650;
+}
+
+.suggestion:hover { background: #ffffff35; }
+
+.chat-input {
+  display: flex;
+  gap: 10px;
+  background: white;
+  border: 3px solid #ffb9bf;
+  border-radius: 20px;
+  padding: 10px;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.chat-input input {
+  border: 0;
+  outline: 0;
+  width: 100%;
+  padding: 13px;
+  font-size: 17px;
+  min-width: 0;
+}
+
+.send-btn {
+  background: var(--red);
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 13px;
+  font-weight: 800;
+}
+
+.reply {
+  background: #ffffff21;
+  border: 1px solid #ffffff35;
+  border-radius: 15px;
+  padding: 21px;
+  min-height: 70px;
+  white-space: pre-wrap;
+  line-height: 1.65;
+}
+
+.chat-hero { min-height: 460px; }
+
+.notice {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 14px 0 25px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 12px;
+  padding-top: 14px;
+}
+
+.footer strong { color: var(--red); }
+.hidden { display: none !important; }
+
+.status {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 10px 0;
+}
+
+@media (max-width: 1000px) {
+  .app { grid-template-columns: 210px 1fr; }
+  .content { padding: 22px; }
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .panels { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 650px) {
+  .app { display: block; }
+  .sidebar { height: auto; position: static; padding: 14px; }
+  .nav-label, .user { display: none; }
+  .nav { display: flex; margin-top: 12px; }
+  .nav button { font-size: 13px; padding: 10px; }
+  .topbar { height: 60px; padding: 0 15px; }
+  .content { padding: 15px; }
+  .hero { padding: 25px; }
+  .kpis { gap: 9px; }
+  .card { padding: 15px; }
+  .kpi-value { font-size: 22px; }
+  .footer { gap: 10px; }
+}
+</style>
 </head>
 
 <body>
 <div class="app">
 
-    <!-- SHARED SIDEBAR -->
-    <aside class="sidebar">
+  <aside class="sidebar">
+    <div class="brand">
+      <img class="brand-logo"
+           src="/victoria-logo.png"
+           alt="Victoria logo">
+      <div>
+        <strong>VICTORIA</strong>
+        <small>Sales Intelligence</small>
+      </div>
+    </div>
 
-        <div class="brand">
-            <img
-                src="victoria-logo.png"
-                class="brand-logo"
-                alt="Victoria Logo"
-            >
+    <div class="nav-label">WORKSPACE</div>
 
-            <div>
-                <div class="brand-title">VICTORIA</div>
-                <div class="brand-subtitle">Sales Intelligence</div>
-            </div>
+    <nav class="nav">
+      <button id="navOverview"
+              class="active"
+              onclick="showPage('overview')">
+        ▦ Sales overview
+      </button>
+
+      <button id="navChat"
+              onclick="showPage('chat')">
+        ✦ Ask Victoria
+      </button>
+    </nav>
+
+    <div class="user">
+      <div class="avatar">JK</div>
+      <div>
+        <strong>Victoria workspace</strong>
+        <small>Sales intelligence</small>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div id="breadcrumb">Workspace / Sales overview</div>
+      <span class="chip">Sample-data workspace</span>
+    </header>
+
+    <div class="content">
+
+      <!-- SALES OVERVIEW PAGE -->
+      <section id="overviewPage">
+
+        <div class="hero">
+          <div class="eyebrow">VICTORIA · SALES INTELLIGENCE</div>
+          <h1>Sales overview</h1>
+          <p>
+            Review revenue, orders, units sold and market performance.
+          </p>
+
+          <label for="monthSelect">Reporting month</label>
+          <select id="monthSelect" class="month-control">
+            <option value="2026-09">September 2026</option>
+            <option value="2026-08">August 2026</option>
+            <option value="2026-07">July 2026</option>
+          </select>
         </div>
 
-        <div class="sidebar-label">WORKSPACE</div>
+        <div class="kpis">
+          <div class="card">
+            <div class="kpi-label">Revenue</div>
+            <div id="kpiRevenue" class="kpi-value">...</div>
+            <div class="kpi-sub">Total sales</div>
+          </div>
 
-        <nav class="nav" aria-label="Workspace">
-            <a
-                class="nav-item active"
-                href="#overview"
-                data-page-link="overview"
-                aria-current="page"
-            >
-                <span aria-hidden="true">▦</span>
-                Sales overview
-            </a>
+          <div class="card">
+            <div class="kpi-label">Orders</div>
+            <div id="kpiOrders" class="kpi-value">...</div>
+            <div class="kpi-sub">Order count</div>
+          </div>
 
-            <a
-                class="nav-item"
-                href="#ask-victoria"
-                data-page-link="ask-victoria"
-            >
-                <span aria-hidden="true">✦</span>
-                Ask Victoria
-            </a>
-        </nav>
+          <div class="card">
+            <div class="kpi-label">Units sold</div>
+            <div id="kpiUnits" class="kpi-value">...</div>
+            <div class="kpi-sub">Units</div>
+          </div>
 
-        <div class="sidebar-user">
-            <div class="avatar">JK</div>
-
-            <div>
-                <strong>Jai Krishna</strong>
-                <span>Victoria workspace</span>
-            </div>
+          <div class="card">
+            <div class="kpi-label">Average order value</div>
+            <div id="kpiAov" class="kpi-value">...</div>
+            <div id="growthText" class="kpi-sub">Monthly KPI</div>
+          </div>
         </div>
 
-    </aside>
-
-    <main class="main">
-
-        <!-- SHARED TOP BAR -->
-        <header class="topbar">
-            <div class="breadcrumb" id="pageBreadcrumb">
-                Workspace / Sales overview
-            </div>
-
-            <div class="workspace-chip">
-                Demo workspace
-            </div>
-        </header>
-
-        <div class="content">
-
-            <!-- PAGE 1: SALES OVERVIEW -->
-            <div
-                id="overviewPage"
-                class="page-view"
-                data-page="overview"
-            >
-
-                <section class="hero">
-                    <div class="eyebrow">
-                        VICTORIA SALES INTELLIGENCE
-                    </div>
-
-                    <h1>
-                        Your data.<br>
-                        A conversation away.
-                    </h1>
-
-                    <p>
-                        Explore sales, compare markets, understand
-                        product performance and ask Victoria
-                        questions about your business.
-                    </p>
-
-                    <div class="hero-controls">
-                        <select
-                            class="hero-select"
-                            id="periodSelect"
-                            aria-label="Reporting period"
-                        >
-                            <option>September 2026</option>
-                            <option>August 2026</option>
-                        </select>
-
-                        <div class="sample-note">
-                            Sample data only · USD ·
-                            Illustrative monthly totals
-                        </div>
-                    </div>
-                </section>
-
-                <section id="overview">
-                    <div class="section-heading">
-                        <div>
-                            <div
-                                class="eyebrow"
-                                style="color: var(--red); margin-bottom: 7px;"
-                            >
-                                THE BIG PICTURE
-                            </div>
-
-                            <h2 id="overviewHeading" tabindex="-1">
-                                Sales overview
-                            </h2>
-
-                            <p>
-                                A clearer view of how your business is doing.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="kpis">
-
-                        <div class="card kpi">
-                            <div class="kpi-top">
-                                <div class="kpi-label">Total revenue</div>
-                                <div class="kpi-icon">$</div>
-                            </div>
-
-                            <div class="kpi-value">$1,248,000</div>
-                            <div class="kpi-change">
-                                ↑ 12.0% vs. last month
-                            </div>
-                        </div>
-
-                        <div class="card kpi">
-                            <div class="kpi-top">
-                                <div class="kpi-label">Units sold</div>
-                                <div class="kpi-icon">↗</div>
-                            </div>
-
-                            <div class="kpi-value">15,600</div>
-                            <div class="kpi-change">
-                                ↑ 8.3% vs. last month
-                            </div>
-                        </div>
-
-                        <div class="card kpi">
-                            <div class="kpi-top">
-                                <div class="kpi-label">Total orders</div>
-                                <div class="kpi-icon">#</div>
-                            </div>
-
-                            <div class="kpi-value">1,240</div>
-                            <div class="kpi-change">
-                                ↑ 6.0% vs. last month
-                            </div>
-                        </div>
-
-                        <div class="card kpi">
-                            <div class="kpi-top">
-                                <div class="kpi-label">Avg. order value</div>
-                                <div class="kpi-icon">◎</div>
-                            </div>
-
-                            <div class="kpi-value">$1,006</div>
-                            <div class="kpi-change">
-                                ↑ 5.7% vs. last month
-                            </div>
-                        </div>
-
-                    </div>
-                </section>
-
-                <!-- REVENUE AND MARKETS -->
-                <section class="dashboard-grid">
-
-                    <div class="card panel">
-                        <div class="panel-title">
-                            Revenue performance
-                        </div>
-
-                        <div class="panel-subtitle">
-                            Monthly sales revenue · 6-month view
-                        </div>
-
-                        <div class="chart">
-                            <div class="bar-wrap">
-                                <div
-                                    class="bar"
-                                    data-value="$820k"
-                                    style="height: 48%;"
-                                ></div>
-                                <div class="bar-label">Apr</div>
-                            </div>
-
-                            <div class="bar-wrap">
-                                <div
-                                    class="bar"
-                                    data-value="$890k"
-                                    style="height: 54%;"
-                                ></div>
-                                <div class="bar-label">May</div>
-                            </div>
-
-                            <div class="bar-wrap">
-                                <div
-                                    class="bar"
-                                    data-value="$960k"
-                                    style="height: 60%;"
-                                ></div>
-                                <div class="bar-label">Jun</div>
-                            </div>
-
-                            <div class="bar-wrap">
-                                <div
-                                    class="bar"
-                                    data-value="$1.04M"
-                                    style="height: 68%;"
-                                ></div>
-                                <div class="bar-label">Jul</div>
-                            </div>
-
-                            <div class="bar-wrap">
-                                <div
-                                    class="bar"
-                                    data-value="$1.11M"
-                                    style="height: 76%;"
-                                ></div>
-                                <div class="bar-label">Aug</div>
-                            </div>
-
-                            <div class="bar-wrap">
-                                <div
-                                    class="bar"
-                                    data-value="$1.25M"
-                                    style="height: 88%;"
-                                ></div>
-                                <div class="bar-label">Sep</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card panel">
-                        <div class="panel-title">Sales by market</div>
-
-                        <div class="panel-subtitle">
-                            Revenue contribution this month
-                        </div>
-
-                        <div class="market-list">
-
-                            <div class="market-row">
-                                <div class="market-header">
-                                    <span>Kenya</span>
-                                    <span>$512,000</span>
-                                </div>
-
-                                <div class="market-bar">
-                                    <div
-                                        class="market-fill"
-                                        style="width: 100%;"
-                                    ></div>
-                                </div>
-                            </div>
-
-                            <div class="market-row">
-                                <div class="market-header">
-                                    <span>Tanzania</span>
-                                    <span>$374,400</span>
-                                </div>
-
-                                <div class="market-bar">
-                                    <div
-                                        class="market-fill"
-                                        style="width: 73%;"
-                                    ></div>
-                                </div>
-                            </div>
-
-                            <div class="market-row">
-                                <div class="market-header">
-                                    <span>Uganda</span>
-                                    <span>$224,600</span>
-                                </div>
-
-                                <div class="market-bar">
-                                    <div
-                                        class="market-fill"
-                                        style="width: 44%;"
-                                    ></div>
-                                </div>
-                            </div>
-
-                            <div class="market-row">
-                                <div class="market-header">
-                                    <span>Rwanda</span>
-                                    <span>$137,000</span>
-                                </div>
-
-                                <div class="market-bar">
-                                    <div
-                                        class="market-fill"
-                                        style="width: 27%;"
-                                    ></div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                </section>
-
-                <!-- PRODUCTS BELONG ONLY TO THE OVERVIEW PAGE -->
-                <section class="card table-card">
-                    <div class="table-head">
-                        <div class="panel-title">
-                            Top-selling products
-                        </div>
-
-                        <div class="panel-subtitle">
-                            What's moving across your markets ·
-                            Ranked by units sold
-                        </div>
-                    </div>
-
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Product</th>
-                                    <th>Category</th>
-                                    <th>Units sold</th>
-                                    <th>Revenue</th>
-                                    <th>Share of units</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                <tr>
-                                    <td class="rank">01</td>
-                                    <td>
-                                        <strong>Samsung Galaxy A16</strong>
-                                    </td>
-                                    <td>Smartphones</td>
-                                    <td>5,400</td>
-                                    <td>$540,000</td>
-                                    <td>34.6%</td>
-                                </tr>
-
-                                <tr>
-                                    <td class="rank">02</td>
-                                    <td><strong>Tecno Spark 30</strong></td>
-                                    <td>Smartphones</td>
-                                    <td>4,200</td>
-                                    <td>$336,000</td>
-                                    <td>26.9%</td>
-                                </tr>
-
-                                <tr>
-                                    <td class="rank">03</td>
-                                    <td><strong>Infinix Hot 50</strong></td>
-                                    <td>Smartphones</td>
-                                    <td>3,600</td>
-                                    <td>$252,000</td>
-                                    <td>23.1%</td>
-                                </tr>
-
-                                <tr>
-                                    <td class="rank">04</td>
-                                    <td><strong>Nokia 105</strong></td>
-                                    <td>Feature phones</td>
-                                    <td>2,400</td>
-                                    <td>$120,000</td>
-                                    <td>15.4%</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-            </div>
-
-            <!-- PAGE 2: ASK VICTORIA -->
-            <div
-                id="chatPage"
-                class="page-view"
-                data-page="ask-victoria"
-                hidden
-            >
-                <div class="section-heading">
-                    <div>
-                        <h1 id="chatHeading" tabindex="-1">
-                            Ask Victoria
-                        </h1>
-
-                        <p>
-                            Your sales copilot · Sample data · September 2026
-                        </p>
-                    </div>
-                </div>
-
-                <section id="ask-victoria" class="card ask-card">
-                    <h2>✦ Ask Victoria</h2>
-
-                    <p>
-                        Your sales copilot. Ask questions about
-                        sales, revenue, products and markets.
-                    </p>
-
-                    <div class="suggestions">
-                        <button
-                            type="button"
-                            class="suggestion"
-                            onclick="useSuggestion('Give me a sales summary')"
-                        >
-                            Give me a sales summary
-                        </button>
-
-                        <button
-                            type="button"
-                            class="suggestion"
-                            onclick="useSuggestion('Which market is performing best?')"
-                        >
-                            Which market is performing best?
-                        </button>
-
-                        <button
-                            type="button"
-                            class="suggestion"
-                            onclick="useSuggestion('Show top-selling products')"
-                        >
-                            Show top-selling products
-                        </button>
-
-                        <button
-                            type="button"
-                            class="suggestion"
-                            onclick="useSuggestion('How is revenue trending?')"
-                        >
-                            How is revenue trending?
-                        </button>
-                    </div>
-
-                    <div class="chat-box">
-                        <input
-                            id="questionInput"
-                            type="text"
-                            aria-label="Ask a sales question"
-                            placeholder="Ask a sales question..."
-                            onkeydown="handleKey(event)"
-                        >
-
-                        <button
-                            type="button"
-                            class="send-btn"
-                            onclick="sendQuestion()"
-                        >
-                            Send ↑
-                        </button>
-                    </div>
-
-                    <div
-                        id="responseBox"
-                        class="response-box"
-                        role="status"
-                        aria-live="polite"
-                    ></div>
-                </section>
-
-                <p class="chat-demo-note">
-                    Demo responses only. The AI agent and sales
-                    database are not connected yet.
-                </p>
-
-            </div>
-
-            <!-- SHARED FOOTER -->
-            <footer class="footer">
-                <span>
-                    <strong>VICTORIA</strong>
-                    · Sales intelligence, made simple.
-                </span>
-
-                <span>Prototype · September 2026</span>
-            </footer>
-
+        <div class="panels">
+          <div class="card">
+            <div class="panel-title">Revenue by market</div>
+            <div class="panel-sub">Selected month</div>
+            <div id="marketBars"></div>
+          </div>
+
+          <div class="card">
+            <div class="panel-title">Top products</div>
+            <div class="panel-sub">Ranked by revenue</div>
+            <div id="productList"></div>
+          </div>
         </div>
-    </main>
+
+        <div id="overviewStatus" class="status"></div>
+      </section>
+
+      <!-- ASK VICTORIA PAGE -->
+      <section id="chatPage" class="hidden">
+
+        <div class="hero chat-hero">
+          <div class="eyebrow">YOUR SALES COPILOT</div>
+          <h1>✦ Ask Victoria</h1>
+          <p>
+            Ask questions about sales, revenue, products and markets.
+          </p>
+
+          <div class="suggestions">
+            <button class="suggestion"
+              onclick="askSuggestion('Give me a sales summary for September 2026')">
+              Give me a sales summary
+            </button>
+
+            <button class="suggestion"
+              onclick="askSuggestion('Which market performed best in September 2026?')">
+              Which market is performing best?
+            </button>
+
+            <button class="suggestion"
+              onclick="askSuggestion('Show top-selling products in September 2026')">
+              Show top-selling products
+            </button>
+
+            <button class="suggestion"
+              onclick="askSuggestion('How is revenue trending in September 2026?')">
+              How is revenue trending?
+            </button>
+          </div>
+
+          <form id="chatForm" class="chat-input">
+            <input
+              id="questionInput"
+              type="text"
+              maxlength="2000"
+              autocomplete="off"
+              placeholder="Ask a sales question..."
+              required
+            >
+
+            <button type="submit"
+                    id="sendButton"
+                    class="send-btn">
+              Send ↑
+            </button>
+          </form>
+
+          <div id="responseBox"
+               class="reply"
+               role="status"
+               aria-live="polite">
+            Ask a sales question to get started.
+          </div>
+        </div>
+
+        <p class="notice">
+          Powered by locally hosted Qwen3 8B and FastAPI.
+          Answers currently use the sample sales database,
+          not Victoria's production data.
+        </p>
+      </section>
+
+      <footer class="footer">
+        <span>
+          <strong>VICTORIA</strong>
+          · Sales intelligence, made simple.
+        </span>
+        <span>Development MVP · Sample data</span>
+      </footer>
+
+    </div>
+  </main>
 </div>
 
 <script>
-    /*
-     * Two separate page views inside one HTML file:
-     *
-     * #overview      → Dashboard
-     * #ask-victoria  → Chatbot
-     *
-     * Browser Back and Forward also work.
-     * Switching pages preserves the current chat response.
-     */
+"use strict";
 
-    function showPage(moveFocus = false) {
-        const route = window.location.hash.slice(1);
+const $ = (id) => document.getElementById(id);
 
-        const page = route === "ask-victoria"
-            ? "ask-victoria"
-            : "overview";
+// PAGE NAVIGATION
+function showPage(page) {
+  const chat = page === "chat";
 
-        // Send unknown routes back to the overview.
-        if (route && route !== page) {
-            window.location.replace("#overview");
-            return;
-        }
+  $("overviewPage").classList.toggle("hidden", chat);
+  $("chatPage").classList.toggle("hidden", !chat);
 
-        // Display only the selected page.
-        document.querySelectorAll("[data-page]").forEach(view => {
-            view.hidden = view.dataset.page !== page;
-        });
+  $("navOverview").classList.toggle("active", !chat);
+  $("navChat").classList.toggle("active", chat);
 
-        // Update the active sidebar link.
-        document.querySelectorAll("[data-page-link]").forEach(link => {
-            const active = link.dataset.pageLink === page;
+  $("breadcrumb").textContent =
+    "Workspace / " + (chat ? "Ask Victoria" : "Sales overview");
 
-            link.classList.toggle("active", active);
-
-            if (active) {
-                link.setAttribute("aria-current", "page");
-            } else {
-                link.removeAttribute("aria-current");
-            }
-        });
-
-        const title = page === "overview"
-            ? "Sales overview"
-            : "Ask Victoria";
-
-        document.getElementById("pageBreadcrumb").textContent =
-            "Workspace / " + title;
-
-        document.title = title + " — Victoria Sales Intelligence";
-
-        if (moveFocus) {
-            const headingId = page === "overview"
-                ? "overviewHeading"
-                : "chatHeading";
-
-            document.getElementById(headingId).focus({
-                preventScroll: true
-            });
-
-            window.scrollTo({
-                top: 0,
-                behavior: "instant"
-            });
-        }
-    }
-
-    window.addEventListener("hashchange", () => {
-        showPage(true);
-    });
-
-    // Open the correct page on initial load.
-    showPage();
-
-    function useSuggestion(question) {
-        const input = document.getElementById("questionInput");
-
-        input.value = question;
-        input.focus();
-    }
-
-    function handleKey(event) {
-        if (event.key === "Enter" && !event.isComposing) {
-            event.preventDefault();
-            sendQuestion();
-        }
-    }
-
-    async function sendQuestion() {
-    const input = document.getElementById("questionInput");
-    const responseBox = document.getElementById("responseBox");
-    const sendButton = document.querySelector(".send-btn");
-
-    const question = input.value.trim();
-
-    // Prevent empty questions and duplicate submissions.
-    if (!question || sendButton.disabled) {
-        return;
-    }
-
-    sendButton.disabled = true;
-    sendButton.textContent = "Sending…";
-    input.disabled = true;
-
-    responseBox.style.display = "block";
-    responseBox.textContent = "Victoria is responding…";
-    responseBox.setAttribute("aria-busy", "true");
-
-    try {
-        const response = await fetch("/api/chat", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ question }),
-            signal: AbortSignal.timeout(30000)
-        });
-
-        if (!response.ok) {
-            throw new Error(
-                response.status === 422
-                    ? "Enter a question between 1 and 2,000 characters."
-                    : `The backend returned an error (${response.status}).`
-            );
-        }
-
-        const data = await response.json();
-
-        if (typeof data.answer !== "string") {
-            throw new Error("The backend returned an invalid response.");
-        }
-
-        const label = data.mode === "demo"
-            ? "Victoria (demo): "
-            : "Victoria: ";
-
-        // Display backend responses safely as text.
-        responseBox.textContent = label + data.answer;
-        input.value = "";
-
-    } catch (error) {
-        responseBox.textContent =
-            error.name === "TimeoutError"
-                ? "The request timed out. Please try again."
-                : "Could not get a response. " + error.message;
-
-    } finally {
-        sendButton.disabled = false;
-        sendButton.textContent = "Send ↑";
-        input.disabled = false;
-        responseBox.removeAttribute("aria-busy");
-        input.focus();
-    }
+  if (chat) $("questionInput").focus();
 }
 
-    function getDemoAnswer(question) {
-        const lowerQuestion = question.toLowerCase();
+// CURRENCY FORMATTER
+function money(value, currency = "USD") {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency
+  }).format(Number(value) || 0);
+}
 
-        if (lowerQuestion.includes("summary")) {
-            return `
-                September revenue is <strong>$1.248M</strong>,
-                with <strong>15,600 units sold</strong>.
-                Revenue increased <strong>12%</strong>
-                compared with last month.
-                Kenya is currently the largest revenue market.
-            `;
-        }
+// DISPLAY SALES DATA
+function displayOverview(data) {
+  const summary = data.summary || {};
+  const currency = data.currency || "USD";
 
-        if (
-            lowerQuestion.includes("market") ||
-            lowerQuestion.includes("best")
-        ) {
-            return `
-                Based on the sample data,
-                <strong>Kenya</strong> has the highest revenue
-                at <strong>$512,000</strong>.
-            `;
-        }
+  $("kpiRevenue").textContent =
+    money(summary.revenue, currency);
 
-        if (lowerQuestion.includes("product")) {
-            return `
-                The current top-selling product is the
-                <strong>Samsung Galaxy A16</strong>
-                with <strong>5,400 units sold</strong>.
-            `;
-        }
+  $("kpiOrders").textContent =
+    summary.orders ?? "—";
 
-        if (
-            lowerQuestion.includes("trend") ||
-            lowerQuestion.includes("revenue")
-        ) {
-            return `
-                Revenue has increased from
-                <strong>$820K in April</strong>
-                to <strong>$1.248M in September</strong>.
-                The sample data shows a consistent upward trend.
-            `;
-        }
+  $("kpiUnits").textContent =
+    summary.units_sold ?? "—";
 
-        return `
-            This prototype is currently using sample responses.
-            The next step is to connect this chat box to your
-            <strong>FastAPI backend</strong>, AI agent
-            and Victoria sales database.
-        `;
+  $("kpiAov").textContent =
+    money(summary.average_order_value, currency);
+
+  $("growthText").textContent =
+    summary.revenue_growth_percent == null
+      ? "Monthly KPI"
+      : "Revenue growth: " +
+        summary.revenue_growth_percent + "%";
+
+  // MARKET REVENUE BARS
+  const markets = data.markets || [];
+  const maxRevenue = Math.max(
+    1,
+    ...markets.map(m => Number(m.revenue) || 0)
+  );
+
+  $("marketBars").replaceChildren();
+
+  markets.forEach(market => {
+    const row = document.createElement("div");
+    row.className = "barrow";
+
+    const name = document.createElement("span");
+    name.textContent = market.market;
+
+    const track = document.createElement("div");
+    track.className = "track";
+
+    const fill = document.createElement("div");
+    fill.className = "fill";
+    fill.style.width =
+      (Number(market.revenue) || 0) / maxRevenue * 100 + "%";
+
+    track.appendChild(fill);
+
+    const amount = document.createElement("strong");
+    amount.textContent = money(market.revenue, currency);
+
+    row.append(name, track, amount);
+    $("marketBars").appendChild(row);
+  });
+
+  if (!markets.length) {
+    $("marketBars").textContent = "No market data available.";
+  }
+
+  // PRODUCT RANKING
+  const products = [...(data.products || [])]
+    .sort((a, b) => b.revenue - a.revenue);
+
+  $("productList").replaceChildren();
+
+  products.forEach(product => {
+    const row = document.createElement("div");
+    row.className = "listrow";
+
+    const name = document.createElement("span");
+    name.textContent = product.product;
+
+    const amount = document.createElement("strong");
+    amount.textContent = money(product.revenue, currency);
+
+    row.append(name, amount);
+    $("productList").appendChild(row);
+  });
+
+  if (!products.length) {
+    $("productList").textContent = "No product data available.";
+  }
+}
+
+// LOAD DATA FROM FASTAPI
+async function loadOverview() {
+  const month = $("monthSelect").value;
+  $("overviewStatus").textContent = "Loading sales data...";
+
+  try {
+    const response = await fetch(
+      "/api/sales/overview?month=" + encodeURIComponent(month),
+      { signal: AbortSignal.timeout(15000) }
+    );
+
+    if (!response.ok) {
+      throw new Error("Server returned " + response.status);
     }
+
+    const data = await response.json();
+
+    if (!data.has_data) {
+      $("overviewStatus").textContent =
+        "No sales data for " + month;
+
+      ["kpiRevenue", "kpiOrders", "kpiUnits", "kpiAov"]
+        .forEach(id => $(id).textContent = "—");
+
+      $("growthText").textContent = "No data";
+      $("marketBars").textContent = "No data available.";
+      $("productList").textContent = "No data available.";
+      return;
+    }
+
+    displayOverview(data);
+
+    $("overviewStatus").textContent =
+      "Showing sample sales data for " + month;
+
+  } catch (err) {
+    $("overviewStatus").textContent =
+      "Could not load sales data: " + err.message;
+  }
+}
+
+// CHAT SUGGESTIONS
+function askSuggestion(question) {
+  showPage("chat");
+  $("questionInput").value = question;
+  $("chatForm").requestSubmit();
+}
+
+// SEND MESSAGE TO QWEN3 VIA FASTAPI
+async function sendQuestion(event) {
+  event.preventDefault();
+
+  const question = $("questionInput").value.trim();
+
+  if (!question || $("sendButton").disabled) {
+    return;
+  }
+
+  $("sendButton").disabled = true;
+  $("responseBox").setAttribute("aria-busy", "true");
+  $("responseBox").textContent =
+    "Victoria is analyzing your question...";
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ question }),
+      signal: AbortSignal.timeout(125000)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        typeof data.detail === "string"
+          ? data.detail
+          : "Server returned " + response.status
+      );
+    }
+
+    $("responseBox").textContent =
+      "Victoria: " + (data.answer || "No response returned.");
+
+  } catch (err) {
+    $("responseBox").textContent =
+      err.name === "TimeoutError"
+        ? "AI response timed out. Check Ollama."
+        : "Unable to get an answer: " + err.message;
+
+  } finally {
+    $("sendButton").disabled = false;
+    $("responseBox").setAttribute("aria-busy", "false");
+  }
+}
+
+// EVENT LISTENERS
+$("chatForm").addEventListener("submit", sendQuestion);
+$("monthSelect").addEventListener("change", loadOverview);
+
+// INITIALIZE APPLICATION
+showPage("overview");
+loadOverview();
+
 </script>
 </body>
 </html>
